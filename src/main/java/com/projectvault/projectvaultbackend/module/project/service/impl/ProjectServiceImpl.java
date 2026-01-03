@@ -1,5 +1,7 @@
 package com.projectvault.projectvaultbackend.module.project.service.impl;
 
+import com.projectvault.projectvaultbackend.common.exception.DataAlreadyExistException;
+import com.projectvault.projectvaultbackend.common.exception.ResourceNotFoundException;
 import com.projectvault.projectvaultbackend.module.project.dto.CloudinaryUploadResultDto;
 import com.projectvault.projectvaultbackend.module.project.dto.ProjectCreateRequestDto;
 import com.projectvault.projectvaultbackend.module.project.dto.ProjectSectionDto;
@@ -11,10 +13,12 @@ import com.projectvault.projectvaultbackend.module.project.entity.ProjectSection
 import com.projectvault.projectvaultbackend.module.project.repository.ProjectRepository;
 import com.projectvault.projectvaultbackend.module.project.service.CloudinaryService;
 import com.projectvault.projectvaultbackend.module.project.service.ProjectService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,6 +34,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectEntity create(ProjectCreateRequestDto projectDto, List<MultipartFile> images, List<MultipartFile> documents) {
+        Optional<ProjectEntity> availableProject =  repository.findBySlug(projectDto.slug());
+
+        if(availableProject.isPresent()){
+            throw new DataIntegrityViolationException("Project with Slug " + projectDto.slug() + " already exists");
+        }
+
         ProjectEntity project = new ProjectEntity();
         project.setSlug(projectDto.slug());
         project.setName(projectDto.name());
@@ -55,13 +65,11 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
 
-        if(images != null) {
+        if(images != null)
             saveFiles(project, images, "IMAGE");
-        }
 
-        if(documents != null) {
+        if(documents != null)
             saveFiles(project, documents, "DOCUMENT");
-        }
 
         return repository.save(project);
     }
@@ -69,7 +77,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectEntity getBySlug(String slug) {
         return repository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with slug: " + slug));
     }
 
     @Override
