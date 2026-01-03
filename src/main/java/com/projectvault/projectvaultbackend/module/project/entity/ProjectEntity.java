@@ -28,12 +28,11 @@ public class ProjectEntity {
     @Column(nullable = false)
     private String status;
 
-    @OneToMany(
-            mappedBy = "project",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectSectionEntity> sections = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectFileEntity> files = new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -1,8 +1,11 @@
 package com.projectvault.projectvaultbackend.module.project.controller;
 
+import com.projectvault.projectvaultbackend.module.project.dto.ProjectCreateRequestDto;
 import com.projectvault.projectvaultbackend.module.project.entity.ProjectEntity;
 import com.projectvault.projectvaultbackend.module.project.service.ProjectService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,9 +20,19 @@ public class ProjectController {
         this.service = service;
     }
 
-    @PostMapping
-    public ProjectEntity create(@RequestBody ProjectEntity project) {
-        return service.create(project);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ProjectEntity create(
+            @RequestPart("project") ProjectCreateRequestDto projectJson,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "documents", required = false) List<MultipartFile> documents
+    ) {
+        for(MultipartFile image: images) {
+            System.out.println(image.getOriginalFilename());
+        }
+        for(MultipartFile document: documents) {
+            System.out.println(document.getOriginalFilename());
+        }
+        return service.create(projectJson, images, documents);
     }
 
     @GetMapping
